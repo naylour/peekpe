@@ -1,0 +1,26 @@
+cargo-features = ["profile-rustflags", "trim-paths", "panic-immediate-abort"]
+
+[package]
+name = "peekpe"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+color-eyre = "0.6.5"
+crossterm = "0.29.0"
+ratatui = "0.30.0"
+
+
+[profile.dev]
+incremental = true
+rustflags = ["-Zthreads=8"]
+
+[profile.release]
+debug = 0
+codegen-units = 1
+lto = "fat"
+opt-level = "z"
+panic = "abort"
+strip = true
+trim-paths = "all"
+rustflags = ["-Cdebuginfo=0", "-Zthreads=8"]
