@@ -25,7 +25,7 @@ case "$ARCH" in
         ;;
 esac
 
-BINARY="peekpe-${OS}-${ARCH}"
+BINARY="peekpe"
 
 URL="https://github.com/$REPO/releases/latest/download/$BINARY"
 

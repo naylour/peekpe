@@ -16,7 +16,7 @@ jobs:
                 include:
                     - os: ubuntu-latest
                       target: x86_64-unknown-linux-gnu
-                      bin: peekpe
+                      bin: peekpe-linux
 
                     - os: windows-latest
                       target: x86_64-pc-windows-gnu
@@ -24,7 +24,7 @@ jobs:
 
                     - os: macos-latest
                       target: x86_64-apple-darwin
-                      bin: peekpe
+                      bin: peekpe-macos
 
         runs-on: ${{ matrix.os }}
 
