@@ -1,0 +1,81 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      target: x86_64-unknown-linux-gnu
+                      bin: peekpe
+
+                    - os: windows-latest
+                      target: x86_64-pc-windows-gnu
+                      bin: peekpe.exe
+
+                    - os: macos-latest
+                      target: x86_64-apple-darwin
+                      bin: peekpe
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@nightly
+              with:
+                  targets: ${{ matrix.target }}
+
+            - name: Cache cargo
+              uses: Swatinem/rust-cache@v2
+
+            - name: Build release
+              run: cargo build --release --target ${{ matrix.target }}
+
+            - name: Prepare artifact
+              shell: bash
+              run: |
+                  mkdir dist
+                  cp target/${{ matrix.target }}/release/${{ matrix.bin }} dist/
+
+                  cd dist
+
+                  if [ "${{ runner.os }}" = "Windows" ]; then
+                    certutil -hashfile ${{ matrix.bin }} SHA256 > checksums.txt
+                  else
+                    shasum -a 256 ${{ matrix.bin }} > checksums.txt
+                  fi
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.target }}
+                  path: dist/
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: dist
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: dist/**/*
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
