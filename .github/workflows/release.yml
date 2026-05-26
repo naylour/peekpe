@@ -92,9 +92,14 @@ jobs:
                       - macOS (x86_64)
                       - Windows (gnu)
 
-                      ### ⚡ Install
+                      ### ⚡ Install Linux/MacOS
                       ```bash
-                      curl -fsSL https://get.peekpe.dev/install.sh | sh
+                      curl -fsSL https://raw.githubusercontent.com/naylour/peekpe/main/install/install.sh | sh
+                      ```
+
+                      ### ⚡ Install Windows
+                      ```bash
+                      irm https://raw.githubusercontent.com/naylour/peekpe/main/install/install.ps1 | iex
                       ```
 
                       ### 🔐 Checksums included
