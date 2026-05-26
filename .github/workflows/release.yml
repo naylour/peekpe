@@ -1,4 +1,4 @@
-name: release
+name: Release
 
 on:
     push:
@@ -16,15 +16,15 @@ jobs:
                 include:
                     - os: ubuntu-latest
                       target: x86_64-unknown-linux-gnu
-                      bin: peekpe-linux
-
-                    - os: windows-latest
-                      target: x86_64-pc-windows-gnu
-                      bin: peekpe.exe
+                      artifact: peekpe-linux
 
                     - os: macos-latest
                       target: x86_64-apple-darwin
-                      bin: peekpe-macos
+                      artifact: peekpe-macos
+
+                    - os: windows-latest
+                      target: x86_64-pc-windows-gnu
+                      artifact: peekpe-windows.exe
 
         runs-on: ${{ matrix.os }}
 
@@ -32,9 +32,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Install Rust
+            - name: Install Rust (nightly)
               uses: dtolnay/rust-toolchain@nightly
               with:
+                  toolchain: nightly
                   targets: ${{ matrix.target }}
 
             - name: Cache cargo
@@ -46,21 +47,26 @@ jobs:
             - name: Prepare artifact
               shell: bash
               run: |
-                  mkdir dist
-                  cp target/${{ matrix.target }}/release/${{ matrix.bin }} dist/
+                  set -e
 
-                  cd dist
+                  mkdir -p dist
+
+                  BIN_NAME="peekpe"
 
                   if [ "${{ runner.os }}" = "Windows" ]; then
-                    certutil -hashfile ${{ matrix.bin }} SHA256 > checksums.txt
+                    cp target/${{ matrix.target }}/release/${BIN_NAME}.exe dist/${{ matrix.artifact }}
+                    cd dist
+                    certutil -hashfile ${{ matrix.artifact }} SHA256 > checksums.txt
                   else
-                    shasum -a 256 ${{ matrix.bin }} > checksums.txt
+                    cp target/${{ matrix.target }}/release/${BIN_NAME} dist/${{ matrix.artifact }}
+                    cd dist
+                    shasum -a 256 ${{ matrix.artifact }} > checksums.txt
                   fi
 
-            - name: Upload artifact
+            - name: Upload artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ matrix.target }}
+                  name: ${{ matrix.artifact }}
                   path: dist/
 
     release:
@@ -73,9 +79,25 @@ jobs:
               with:
                   path: dist
 
-            - name: Create Release
+            - name: Create GitHub Release
               uses: softprops/action-gh-release@v2
               with:
+                  name: PeekPe ${{ github.ref_name }}
+                  tag_name: ${{ github.ref_name }}
+                  body: |
+                      ## 🚀 PeekPe Release ${{ github.ref_name }}
+
+                      ### 📦 Binaries
+                      - Linux (x86_64)
+                      - macOS (x86_64)
+                      - Windows (gnu)
+
+                      ### ⚡ Install
+                      ```bash
+                      curl -fsSL https://get.peekpe.dev/install.sh | sh
+                      ```
+
+                      ### 🔐 Checksums included
                   files: dist/**/*
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
