@@ -2,13 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $repo = "naylour/peekpe"
 
-$arch = if ([Environment]::Is64BitOperatingSystem) {
-    "amd64"
-} else {
-    "386"
-}
-
-$binary = "peekpe-windows-$arch.exe"
+$binary = "peekpe-windows.exe"
 
 $url = "https://github.com/$repo/releases/latest/download/$binary"
 
